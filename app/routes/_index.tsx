@@ -1,6 +1,6 @@
 import React from 'react'
 
-import type { MetaFunction } from '@remix-run/node'
+import type { MetaFunction } from '@remix-run/cloudflare'
 
 import { arrowWords } from 'data/arrowwords'
 import { Question } from '~/components/question'
