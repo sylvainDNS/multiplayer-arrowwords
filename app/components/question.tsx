@@ -15,7 +15,7 @@ export const Question = ({ questionField }: QuestionProps) => {
   return (
     <Cell
       className={cn(
-        'text-xs leading-[100%]',
+        'text-xs leading-[100%] pointer-events-none',
         'after:z-10 after:absolute after:bg-no-repeat after:bg-contain after:h-full after:m-auto',
         {
           'after:bg-arrow-right-down after:w-[45%] after:left-full after:top-px':
