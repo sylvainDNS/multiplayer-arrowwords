@@ -1,5 +1,5 @@
 export type ArrowWord = {
-  id: number
+  id: string
   version: number
   difficulty: string
   type: string
@@ -9,6 +9,8 @@ export type ArrowWord = {
   metadata: Metadata
 }
 
+export type Coordinates = { row: number; col: number }
+
 export type Description = {
   rows: number
   cols: number
@@ -17,24 +19,17 @@ export type Description = {
   prizeWord: PrizeWord
 }
 
-export type PrizeField = {
-  row: number
-  col: number
-}
+export type PrizeField = Coordinates
 
 export type PrizeWord = {
   position: string
-  row: number
-  col: number
-}
+} & Coordinates
 
 export type QuestionField = {
-  row: number
-  col: number
   arrowType: ArrowType
   question: string
   wordLength: number
-}
+} & Coordinates
 
 export type ArrowType =
   | 'RIGHT_DOWN'
@@ -55,10 +50,8 @@ export type Solution = {
 }
 
 export type Answer = {
-  row: number
-  col: number
   direction: Direction
   answer: string
-}
+} & Coordinates
 
 export type Direction = 'VERTICAL' | 'HORIZONTAL'
