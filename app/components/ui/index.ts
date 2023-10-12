@@ -1,3 +1,4 @@
+export { Button } from './button'
 export { Cell } from './cell'
 export { FieldIndex } from './field-index'
 export { Row } from './row'

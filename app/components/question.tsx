@@ -1,6 +1,6 @@
 import React from 'react'
 
-import type { QuestionField } from 'data/types'
+import type { QuestionField } from '~/types'
 import { cn } from '~/lib/utils'
 
 import { Cell } from './ui'
