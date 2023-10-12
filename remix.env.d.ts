@@ -1,7 +1,8 @@
 /// <reference types="@remix-run/dev" />
-/// <reference types="@remix-run/cloudflare" />
-/// <reference types="@cloudflare/workers-types" />
+/// <reference types="@remix-run/node" />
 
 declare namespace NodeJS {
-  export interface ProcessEnv {}
+  export interface ProcessEnv {
+    DATABASE_URL: string
+  }
 }

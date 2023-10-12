@@ -1,4 +1,4 @@
-import { redirect, type MetaFunction } from '@remix-run/cloudflare'
+import { redirect, type MetaFunction } from '@remix-run/node'
 
 import { arrowWords as puzzles } from 'data/arrowwords'
 
