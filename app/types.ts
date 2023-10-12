@@ -1,4 +1,4 @@
-export type ArrowWord = {
+export type Puzzle = {
   id: string
   version: number
   difficulty: string
