@@ -3,5 +3,7 @@
 /// <reference types="@cloudflare/workers-types" />
 
 declare namespace NodeJS {
-  export interface ProcessEnv {}
+  export interface ProcessEnv {
+    DATABASE_PATH: string
+  }
 }

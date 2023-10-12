@@ -9,7 +9,10 @@
     "dev": "remix dev --manual -c \"npm run dev:wrangler\"",
     "dev:wrangler": "wrangler pages dev --live-reload --compatibility-date=2023-10-02 ./public",
     "start": "wrangler pages dev --compatibility-date=2023-10-02 ./public",
-    "typecheck": "tsc"
+    "typecheck": "tsc",
+    "db:generate": "drizzle-kit generate:pg",
+    "db:up": "drizzle-kit up:pg",
+    "db:drop": "drizzle-kit drop"
   },
   "dependencies": {
     "@radix-ui/react-icons": "^1.3.0",
@@ -21,7 +24,9 @@
     "@remix-run/serve": "^2.0.1",
     "class-variance-authority": "^0.7.0",
     "clsx": "^2.0.0",
+    "drizzle-orm": "^0.28.6",
     "isbot": "^3.6.8",
+    "postgres": "^3.4.0",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "tailwind-merge": "^1.14.0",
@@ -36,6 +41,7 @@
     "@types/react": "^18.2.20",
     "@types/react-dom": "^18.2.7",
     "autoprefixer": "^10.4.16",
+    "drizzle-kit": "^0.19.13",
     "eslint": "^8.50.0",
     "eslint-config-prettier": "^9.0.0",
     "eslint-plugin-prettier": "^5.0.0",
