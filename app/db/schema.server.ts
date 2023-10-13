@@ -1,3 +1,4 @@
+import type { InferSelectModel } from 'drizzle-orm'
 import {
   timestamp,
   pgTable,
@@ -34,3 +35,4 @@ export const cell = pgTable(
     unq: unique().on(t.row, t.col, t.roomId),
   })
 )
+export type Cell = InferSelectModel<typeof cell>
