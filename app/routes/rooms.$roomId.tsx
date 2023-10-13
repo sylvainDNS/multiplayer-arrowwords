@@ -1,42 +1,79 @@
-import type { LoaderFunctionArgs, MetaFunction } from '@remix-run/node'
+import type {
+  ActionFunctionArgs,
+  LoaderFunctionArgs,
+  MetaFunction,
+} from '@remix-run/node'
 import { json } from '@remix-run/node'
-import { useLoaderData } from '@remix-run/react'
+import { useFetcher, useLoaderData } from '@remix-run/react'
 
 import { eq } from 'drizzle-orm'
 
 import { Question } from '~/components/question'
 import { Cell, FieldIndex, Row } from '~/components/ui'
 import { db } from '~/db/config.server'
-import { room } from '~/db/schema.server'
+import { cell, room } from '~/db/schema.server'
 import { cn } from '~/lib/utils'
 import type { Coordinates } from '~/types'
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
   return [
-    { title: `${data?.info} · Mots fléchés multijoueurs` },
+    { title: `${data?.puzzle?.info} · Mots fléchés multijoueurs` },
     {
       name: 'description',
-      content: `Jouez aux mots fléchés du ${data?.info} avec vos ami·e·s!`,
+      content: `Jouez aux mots fléchés du ${data?.puzzle?.info} avec vos ami·e·s!`,
     },
   ]
 }
 
+export async function action({ params, request }: ActionFunctionArgs) {
+  const roomId = params.roomId
+  if (!roomId) return json(null, { status: 400 })
+
+  const formData = await request.formData()
+  const row = Number.parseInt(formData.get('row') as string)
+  const col = Number.parseInt(formData.get('col') as string)
+  const char = formData.get('char') as string
+
+  try {
+    await db
+      .insert(cell)
+      .values({ row, col, roomId, value: char })
+      .onConflictDoUpdate({ target: cell.id, set: { value: char } })
+      .returning({ id: cell.id })
+
+    return json(null, { status: 200 })
+  } catch (error) {
+    if (error instanceof Error) {
+      return json({ error: error.message }, { status: 400 })
+    }
+    throw error
+  }
+}
+
 export const loader = async ({ params }: LoaderFunctionArgs) => {
-  const selectedRooms = await db
-    .select({ puzzle: room.puzzle })
-    .from(room)
-    .where(eq(room.id, params.roomId as string))
+  const [selectedRooms, selectedCells] = await Promise.all([
+    db
+      .select({ puzzle: room.puzzle })
+      .from(room)
+      .where(eq(room.id, params.roomId as string)),
+    db
+      .select({ row: cell.row, col: cell.col, value: cell.value })
+      .from(cell)
+      .where(eq(cell.roomId, params.roomId as string)),
+  ])
   const selectedRoom = selectedRooms[0]
 
   if (!selectedRoom) throw new Response('', { status: 404 })
-  return json(selectedRoom.puzzle)
+  return json({ puzzle: selectedRoom.puzzle, filledCells: selectedCells })
 }
 
 const findField = (row: number, col: number) => (field: Coordinates) =>
   field.row === row && field.col === col
 
 export default () => {
-  const { description } = useLoaderData<typeof loader>()
+  const { puzzle, filledCells } = useLoaderData<typeof loader>()
+  const { description } = puzzle
+  const updateFetcher = useFetcher()
 
   const prizeWordFields = Array.from(
     { length: description.prizeWord.position.length },
@@ -76,6 +113,8 @@ export default () => {
                 ? prizeWordFieldIndex
                 : prizeFieldIndex
 
+              const defaultValue = filledCells.find(findField(row, col))?.value
+
               return (
                 <Cell
                   key={col}
@@ -84,15 +123,25 @@ export default () => {
                   {shouldDisplayPrizeIndex && (
                     <FieldIndex>{index + 1}</FieldIndex>
                   )}
-                  <input
-                    type="text"
-                    maxLength={1}
-                    pattern="[a-zA-Z]"
-                    className={cn(
-                      'w-full h-full text-3xl font-light text-center uppercase bg-transparent',
-                      'outline-none focus:bg-blue-200 focus:border focus:border-blue-400'
-                    )}
-                  />
+                  <updateFetcher.Form method="POST" className="h-full">
+                    <input type="hidden" name="row" value={row} />
+                    <input type="hidden" name="col" value={col} />
+                    <input
+                      name="char"
+                      type="text"
+                      maxLength={1}
+                      pattern="[a-zA-Z]"
+                      defaultValue={defaultValue}
+                      onKeyUp={e => {
+                        if (e.currentTarget.value === defaultValue) return
+                        updateFetcher.submit(e.currentTarget.form)
+                      }}
+                      className={cn(
+                        'w-full h-full text-3xl font-light text-center uppercase bg-transparent',
+                        'outline-none focus:bg-blue-200 focus:border focus:border-blue-400'
+                      )}
+                    />
+                  </updateFetcher.Form>
                 </Cell>
               )
             })}
