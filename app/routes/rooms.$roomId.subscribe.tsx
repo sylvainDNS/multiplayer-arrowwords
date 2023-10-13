@@ -3,7 +3,7 @@ import type { LoaderFunctionArgs } from '@remix-run/node'
 import { eventStream } from 'remix-utils/sse/server'
 
 import type { Cell } from '~/db/schema.server'
-import { emitter } from '~/services/emitter.server'
+import { emitter } from '~/lib/emitter.server'
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   return eventStream(request.signal, function setup(send) {
