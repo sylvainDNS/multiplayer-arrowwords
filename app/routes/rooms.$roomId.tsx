@@ -14,14 +14,14 @@ import {
 } from '@remix-run/react'
 
 import { eq } from 'drizzle-orm'
-import { useEventSource } from 'remix-utils/sse/react'
 
 import { Question } from '~/components/question'
 import { Cell, FieldIndex, Row } from '~/components/ui'
 import { db } from '~/db/config.server'
 import { cell, room } from '~/db/schema.server'
+import { emitter } from '~/lib/emitter.server'
+import { useEventSource } from '~/lib/sse'
 import { cn } from '~/lib/utils'
-import { emitter } from '~/services/emitter.server'
 import type { Coordinates } from '~/types'
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
