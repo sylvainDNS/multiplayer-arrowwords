@@ -1,18 +1,27 @@
+import { useEffect } from 'react'
+
 import type {
   ActionFunctionArgs,
   LoaderFunctionArgs,
   MetaFunction,
 } from '@remix-run/node'
 import { json } from '@remix-run/node'
-import { useFetcher, useLoaderData } from '@remix-run/react'
+import {
+  useFetcher,
+  useLoaderData,
+  useParams,
+  useRevalidator,
+} from '@remix-run/react'
 
 import { eq } from 'drizzle-orm'
+import { useEventSource } from 'remix-utils/sse/react'
 
 import { Question } from '~/components/question'
 import { Cell, FieldIndex, Row } from '~/components/ui'
 import { db } from '~/db/config.server'
 import { cell, room } from '~/db/schema.server'
 import { cn } from '~/lib/utils'
+import { emitter } from '~/services/emitter.server'
 import type { Coordinates } from '~/types'
 
 export const meta: MetaFunction<typeof loader> = ({ data }) => {
@@ -35,11 +44,13 @@ export async function action({ params, request }: ActionFunctionArgs) {
   const char = formData.get('char') as string
 
   try {
-    await db
+    const [upsertedCell] = await db
       .insert(cell)
       .values({ row, col, roomId, value: char })
       .onConflictDoUpdate({ target: cell.id, set: { value: char } })
       .returning({ id: cell.id })
+
+    emitter.emit('upserted-cell', upsertedCell.id)
 
     return json(null, { status: 200 })
   } catch (error) {
@@ -71,6 +82,7 @@ const findField = (row: number, col: number) => (field: Coordinates) =>
   field.row === row && field.col === col
 
 export default () => {
+  const params = useParams<{ roomId: string }>()
   const { puzzle, filledCells } = useLoaderData<typeof loader>()
   const { description } = puzzle
   const updateFetcher = useFetcher()
@@ -84,6 +96,15 @@ export default () => {
   )
   const rows = Array.from({ length: description.rows })
   const cols = Array.from({ length: description.cols })
+
+  const { revalidate } = useRevalidator()
+  const lastCellId = useEventSource(`/rooms/${params.roomId}/subscribe`, {
+    event: 'refresh-cell',
+  })
+
+  useEffect(() => {
+    if (lastCellId) revalidate()
+  }, [revalidate, lastCellId])
 
   return (
     <div className="flex flex-col justify-center items-center gap-2 h-[100svh]">
@@ -123,7 +144,11 @@ export default () => {
                   {shouldDisplayPrizeIndex && (
                     <FieldIndex>{index + 1}</FieldIndex>
                   )}
-                  <updateFetcher.Form method="POST" className="h-full">
+                  <updateFetcher.Form
+                    action={`/rooms/${params.roomId}`}
+                    method="POST"
+                    className="h-full"
+                  >
                     <input type="hidden" name="row" value={row} />
                     <input type="hidden" name="col" value={col} />
                     <input
