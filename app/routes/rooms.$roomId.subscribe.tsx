@@ -7,14 +7,14 @@ import { emitter } from '~/lib/emitter.server'
 
 export const loader = async ({ request }: LoaderFunctionArgs) => {
   return eventStream(request.signal, function setup(send) {
-    function handle(cellId: Cell['id']) {
+    const handleRefreshCell = (cellId: Cell['id']) => {
       send({ event: 'refresh-cell', data: cellId })
     }
 
-    emitter.on('upserted-cell', handle)
+    emitter.on('upserted-cell', handleRefreshCell)
 
     return function clear() {
-      emitter.off('upserted-cell', handle)
+      emitter.off('upserted-cell', handleRefreshCell)
     }
   })
 }
