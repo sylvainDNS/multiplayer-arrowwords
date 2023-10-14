@@ -3,6 +3,6 @@
 
 declare namespace NodeJS {
   export interface ProcessEnv {
-    DATABASE_PATH: string
+    DATABASE_URL: string
   }
 }
