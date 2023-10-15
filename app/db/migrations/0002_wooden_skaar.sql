@@ -1,0 +1,1 @@
+ALTER TABLE "cell" ALTER COLUMN "value" SET DATA TYPE text;

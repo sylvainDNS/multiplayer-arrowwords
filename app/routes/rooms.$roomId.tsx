@@ -1,4 +1,4 @@
-import { useEffect } from 'react'
+import { useEffect, useId } from 'react'
 
 import type {
   ActionFunctionArgs,
@@ -7,13 +7,17 @@ import type {
 } from '@remix-run/node'
 import { json } from '@remix-run/node'
 import {
+  useActionData,
   useFetcher,
   useLoaderData,
   useParams,
   useRevalidator,
 } from '@remix-run/react'
 
+import { conform, useForm } from '@conform-to/react'
+import { getFieldsetConstraint, parse } from '@conform-to/zod'
 import { eq } from 'drizzle-orm'
+import { z } from 'zod'
 
 import { Question } from '~/components/question'
 import { Cell, FieldIndex, Row } from '~/components/ui'
@@ -34,14 +38,35 @@ export const meta: MetaFunction<typeof loader> = ({ data }) => {
   ]
 }
 
+const UpdateCellFormSchema = z.object({
+  row: z.coerce.number().min(0).readonly(),
+  col: z.coerce.number().min(0).readonly(),
+  char: z
+    .string()
+    .min(0)
+    .max(1)
+    .regex(/^[A-Z]{0,1}\b/)
+    .optional()
+    .transform(value => value?.toUpperCase() || ''),
+})
+
 export async function action({ params, request }: ActionFunctionArgs) {
   const roomId = params.roomId
   if (!roomId) return json(null, { status: 400 })
 
   const formData = await request.formData()
-  const row = Number.parseInt(formData.get('row') as string)
-  const col = Number.parseInt(formData.get('col') as string)
-  const char = formData.get('char') as string
+  const submission = await parse(formData, {
+    schema: UpdateCellFormSchema,
+  })
+
+  if (submission.intent !== 'submit') {
+    return json({ status: 'idle', submission } as const)
+  }
+  if (!submission.value) {
+    return json({ status: 'error', submission } as const, { status: 400 })
+  }
+
+  const { char, col, row } = submission.value
 
   try {
     const [upsertedCell] = await db
@@ -55,10 +80,10 @@ export async function action({ params, request }: ActionFunctionArgs) {
 
     emitter.emit('upserted-cell', upsertedCell.id)
 
-    return json(null, { status: 200 })
+    return json({ submission }, { status: 200 })
   } catch (error) {
     if (error instanceof Error) {
-      return json({ error: error.message }, { status: 400 })
+      return json({ status: 'error', submission }, { status: 400 })
     }
     throw error
   }
@@ -88,7 +113,6 @@ export default () => {
   const params = useParams<{ roomId: string }>()
   const { puzzle, filledCells } = useLoaderData<typeof loader>()
   const { description } = puzzle
-  const updateFetcher = useFetcher()
 
   const prizeWordFields = Array.from(
     { length: description.prizeWord.position.length },
@@ -132,50 +156,83 @@ export default () => {
               )
               const isPrizeField = prizeFieldIndex > -1
 
-              const shouldDisplayPrizeIndex = isPrizeField || isPrizeWordField
-              const index = isPrizeWordField
+              const hasPrizeIndex = isPrizeField || isPrizeWordField
+              const prizeIndex = isPrizeWordField
                 ? prizeWordFieldIndex
                 : prizeFieldIndex
 
               const defaultValue = filledCells.find(findField(row, col))?.value
 
               return (
-                <Cell
-                  key={col}
-                  className={cn({ 'bg-slate-300': shouldDisplayPrizeIndex })}
-                >
-                  {shouldDisplayPrizeIndex && (
-                    <FieldIndex>{index + 1}</FieldIndex>
-                  )}
-                  <updateFetcher.Form
-                    action={`/rooms/${params.roomId}`}
-                    method="POST"
-                    className="h-full"
-                  >
-                    <input type="hidden" name="row" value={row} />
-                    <input type="hidden" name="col" value={col} />
-                    <input
-                      name="char"
-                      type="text"
-                      maxLength={1}
-                      pattern="[a-zA-Z]"
-                      defaultValue={defaultValue}
-                      onKeyUp={e => {
-                        if (e.currentTarget.value === defaultValue) return
-                        updateFetcher.submit(e.currentTarget.form)
-                      }}
-                      className={cn(
-                        'w-full h-full text-3xl font-light text-center uppercase bg-transparent',
-                        'outline-none focus:bg-blue-200 focus:border focus:border-blue-400'
-                      )}
-                    />
-                  </updateFetcher.Form>
-                </Cell>
+                <Answer
+                  key={`${row}-${col}`}
+                  row={row}
+                  col={col}
+                  defaultValue={defaultValue}
+                  prizeIndex={prizeIndex}
+                  isPrizeCell={hasPrizeIndex}
+                />
               )
             })}
           </Row>
         ))}
       </div>
     </div>
+  )
+}
+
+interface AnswerProps {
+  row: number
+  col: number
+  defaultValue?: string
+  prizeIndex?: number
+  isPrizeCell?: boolean
+}
+const Answer = ({
+  row,
+  col,
+  defaultValue,
+  prizeIndex = 0,
+  isPrizeCell,
+}: AnswerProps) => {
+  const id = useId()
+
+  const actionData = useActionData<typeof action>()
+  const updateFetcher = useFetcher()
+
+  const [form, fields] = useForm({
+    id: `update-cell-form-${id}`,
+    defaultValue: { row, col, char: defaultValue },
+    constraint: getFieldsetConstraint(UpdateCellFormSchema),
+    lastSubmission: actionData?.submission,
+    onValidate: ({ formData }) => {
+      return parse(formData, { schema: UpdateCellFormSchema })
+    },
+    shouldRevalidate: 'onInput',
+  })
+
+  return (
+    <Cell key={col} className={cn({ 'bg-slate-300': isPrizeCell })}>
+      {isPrizeCell && <FieldIndex>{prizeIndex + 1}</FieldIndex>}
+      <updateFetcher.Form method="POST" className="h-full" {...form.props}>
+        <input type="hidden" {...conform.input(fields.row)} />
+        <input type="hidden" {...conform.input(fields.col)} />
+        <input
+          onInput={e => {
+            const nextValue = e.currentTarget.value.replace(/[^a-zA-Z+]/g, '')
+            e.currentTarget.value = nextValue
+
+            if (nextValue === defaultValue) return
+
+            updateFetcher.submit(e.currentTarget.form)
+          }}
+          className={cn(
+            'w-full h-full text-3xl font-light text-center uppercase bg-transparent',
+            'outline-none focus:bg-blue-200 focus:border focus:border-blue-400'
+          )}
+          {...conform.input(fields.char)}
+        />
+      </updateFetcher.Form>
+    </Cell>
   )
 }

@@ -5,6 +5,12 @@ settings:
   excludeLinksFromLockfile: false
 
 dependencies:
+  '@conform-to/react':
+    specifier: ^0.9.0
+    version: 0.9.0(react@18.2.0)
+  '@conform-to/zod':
+    specifier: ^0.9.0
+    version: 0.9.0(@conform-to/dom@0.9.0)(zod@3.22.4)
   '@radix-ui/react-icons':
     specifier: ^1.3.0
     version: 1.3.0(react@18.2.0)
@@ -52,13 +58,16 @@ dependencies:
     version: 18.2.0(react@18.2.0)
   remix-utils:
     specifier: ^7.0.2
-    version: 7.0.2(@remix-run/node@2.0.1)(@remix-run/react@2.0.1)(react@18.2.0)
+    version: 7.0.2(@remix-run/node@2.0.1)(@remix-run/react@2.0.1)(react@18.2.0)(zod@3.22.4)
   tailwind-merge:
     specifier: ^1.14.0
     version: 1.14.0
   tailwindcss-animate:
     specifier: ^1.0.7
     version: 1.0.7(tailwindcss@3.3.3)
+  zod:
+    specifier: ^3.22.4
+    version: 3.22.4
 
 devDependencies:
   '@flydotio/dockerfile':
@@ -528,6 +537,29 @@ packages:
       '@babel/helper-validator-identifier': 7.22.20
       to-fast-properties: 2.0.0
     dev: true
+
+  /@conform-to/dom@0.9.0:
+    resolution: {integrity: sha512-kaYP7jKeWWnBY+M0+Rttj5atWm9Tt9Uyts49lU4hoz9p/X8v5GuGas6YOilovyE5/vJUsnuYzN97upxIvlYg4g==}
+    dev: false
+
+  /@conform-to/react@0.9.0(react@18.2.0):
+    resolution: {integrity: sha512-ZxfzK+L4b3Z9SPGCyo8GqLjfSFDp4upiwpjJHxDLPwMDVsF8EvkifSHyzUkjaiIny407qN9zbdtoItQCTaaZeg==}
+    peerDependencies:
+      react: '>=16.8'
+    dependencies:
+      '@conform-to/dom': 0.9.0
+      react: 18.2.0
+    dev: false
+
+  /@conform-to/zod@0.9.0(@conform-to/dom@0.9.0)(zod@3.22.4):
+    resolution: {integrity: sha512-Eq19/U6inDlCB1GNrvfTJBxyRVFesHVgkB5piWqLmhRYFHL8ooQGvmhVaOqeqqm+e+zNCjsIe3jip5ZW7uiBIw==}
+    peerDependencies:
+      '@conform-to/dom': 0.9.0
+      zod: ^3.21.0
+    dependencies:
+      '@conform-to/dom': 0.9.0
+      zod: 3.22.4
+    dev: false
 
   /@drizzle-team/studio@0.0.5:
     resolution: {integrity: sha512-ps5qF0tMxWRVu+V5gvCRrQNqlY92aTnIKdq27gm9LZMSdaKYZt6AVvSK1dlUMzs6Rt0Jm80b+eWct6xShBKhIw==}
@@ -6484,7 +6516,7 @@ packages:
       unified: 10.1.2
     dev: true
 
-  /remix-utils@7.0.2(@remix-run/node@2.0.1)(@remix-run/react@2.0.1)(react@18.2.0):
+  /remix-utils@7.0.2(@remix-run/node@2.0.1)(@remix-run/react@2.0.1)(react@18.2.0)(zod@3.22.4):
     resolution: {integrity: sha512-BsGmOgUzbT+Ui0hlWe5XR37N/MAbOSRyKBkxs8yckU+VOCzIuSRiOPk6qK+Hch4F18QSMRm/5IlrsROtrM1l2A==}
     engines: {node: '>=18.0.0'}
     peerDependencies:
@@ -6524,6 +6556,7 @@ packages:
       '@remix-run/react': 2.0.1(react-dom@18.2.0)(react@18.2.0)(typescript@5.2.2)
       react: 18.2.0
       type-fest: 4.3.3
+      zod: 3.22.4
     dev: false
 
   /require-directory@2.1.1:
@@ -7691,7 +7724,6 @@ packages:
 
   /zod@3.22.4:
     resolution: {integrity: sha512-iC+8Io04lddc+mVqQ9AZ7OQ2MrUKGN+oIQyq1vemgt46jwCwLfhq7/pwnBnNXXXZb8VTVLKwp9EDkx+ryxIWmg==}
-    dev: true
 
   /zwitch@2.0.4:
     resolution: {integrity: sha512-bXE4cR/kVZhKZX/RjPEflHaKVhUVl85noU3v6b8apfQEc1x4A+zBxjZ4lN8LqGd6WZ3dl98pY4o717VFmoPp+A==}

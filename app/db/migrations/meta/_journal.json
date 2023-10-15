@@ -15,6 +15,13 @@
       "when": 1697187382992,
       "tag": "0001_nebulous_sasquatch",
       "breakpoints": true
+    },
+    {
+      "idx": 2,
+      "version": "5",
+      "when": 1697491077750,
+      "tag": "0002_wooden_skaar",
+      "breakpoints": true
     }
   ]
 }

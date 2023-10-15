@@ -5,8 +5,8 @@ import {
   integer,
   uuid,
   jsonb,
-  char,
   unique,
+  text,
 } from 'drizzle-orm/pg-core'
 
 import type { Puzzle } from '~/types'
@@ -27,7 +27,7 @@ export const cell = pgTable(
     roomId: uuid('room_id')
       .references(() => room.id)
       .notNull(),
-    value: char('value', { length: 1 }).notNull(),
+    value: text('value').notNull(),
     createdAt: timestamp('created_at').defaultNow().notNull(),
     updatedAt: timestamp('updated_at').defaultNow().notNull(),
   },
