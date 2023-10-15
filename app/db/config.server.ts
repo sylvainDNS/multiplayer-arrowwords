@@ -5,7 +5,9 @@ import postgres from 'postgres'
 
 import { config } from '~/config.server'
 
-const queryClient = postgres(config.DATABASE_URL)
+const queryClient = postgres(config.DATABASE_URL, {
+  ssl: config.NODE_ENV === 'production' ? 'require' : false,
+})
 export const db: PostgresJsDatabase = drizzle(queryClient)
 
 // Automatically run migrations on startup
