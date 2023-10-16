@@ -76,6 +76,7 @@ export default {
         'arrow-right-down': 'url("/assets/right_down.svg")',
         'arrow-right': 'url("/assets/right.svg")',
         'arrow-up-right': 'url("/assets/up_right.svg")',
+        'arrow-down-right': 'url("/assets/down_right.svg")',
         'arrow-down': 'url("/assets/down.svg")',
         'arrow-left-down': 'url("/assets/left_down.svg")',
       },

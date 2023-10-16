@@ -35,6 +35,7 @@ export type ArrowType =
   | 'RIGHT_DOWN'
   | 'RIGHT'
   | 'UP_RIGHT'
+  | 'DOWN_RIGHT'
   | 'DOWN'
   | 'LEFT_DOWN'
 

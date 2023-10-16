@@ -1,7 +1,5 @@
-import React from 'react'
-
-import type { QuestionField } from '~/types'
 import { cn } from '~/lib/utils'
+import type { QuestionField } from '~/types'
 
 import { Cell } from './ui'
 
@@ -24,6 +22,8 @@ export const Question = ({ questionField }: QuestionProps) => {
             arrowType === 'RIGHT',
           'after:bg-arrow-up-right after:w-[24%] after:left-px after:bottom-full after:bg-bottom':
             arrowType === 'UP_RIGHT',
+          'after:bg-arrow-down-right after:w-[24%] after:left-px after:top-full ':
+            arrowType === 'DOWN_RIGHT',
           'after:bg-arrow-down after:w-[10%] after:right-0 after:left-0  after:top-full':
             arrowType === 'DOWN',
           'after:bg-arrow-left-down after:w-[45%] after:right-full after:top-px':
